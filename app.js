@@ -3,6 +3,7 @@
 // ✅ Importation des modules nécessaires
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import taskRouter from "./routes/taskRouter.js";
 import { logger } from "./middlewares/logger.js";
 import { testConnection, sequelize } from "./models/index.js";
@@ -12,6 +13,9 @@ dotenv.config();
 
 // ✅ Initialisation de l'application Express
 const app = express();
+
+// ✅ Active CORS pour toutes les origines (dev uniquement)
+app.use(cors());
 
 // ✅ Middleware pour lire le JSON dans les requêtes
 app.use(express.json());
