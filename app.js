@@ -1,30 +1,47 @@
 // app.js
-// On importe express (le framework) et dotenv (les variables d'environnement)
+
+// ✅ Importation des modules nécessaires
 import express from "express";
 import dotenv from "dotenv";
 import taskRouter from "./routes/taskRouter.js";
+import { logger } from "./middlewares/logger.js";
+import { testConnection, sequelize } from "./models/index.js";
 
-// On configure dotenv pour lire les variables du fichier .env
+// ✅ Chargement des variables d'environnement
 dotenv.config();
 
-// On initialise l'application Express
+// ✅ Initialisation de l'application Express
 const app = express();
 
-// Middleware pour parser automatiquement les requêtes JSON
+// ✅ Middleware pour lire le JSON dans les requêtes
 app.use(express.json());
 
-// Brancher les routes avec préfixe /api
+// ✅ Middleware Logger perso (affiche les requêtes dans la console)
+app.use(logger);
+
+// ✅ Définition des routes principales avec préfixe
 app.use("/api", taskRouter);
 
-// Création d'une route GET sur la racine (http://localhost:3001/)
+// ✅ Route racine
 app.get("/", (req, res) => {
   res.send("Bienvenue sur l'API de gestion de tâches");
 });
 
-// On récupère le port défini dans .env ou 3000 par défaut
+// ✅ Récupération du port dans .env ou utilisation de 3000 par défaut
 const PORT = process.env.PORT || 3000;
 
-// On lance le serveur et on affiche un message en console
-app.listen(PORT, () =>
-  console.log(`Serveur lancé sur http://localhost:${PORT}`)
-);
+// ✅ Démarrage du serveur
+app.listen(PORT, async () => {
+  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
+
+  // 🔗 Test de connexion à la base au démarrage du serveur
+  await testConnection();
+
+  // 🛑 Synchronisation des modèles (à faire temporairement ici si pas encore fait)
+  try {
+    await sequelize.sync();
+    console.log("✅ Modèles synchronisés avec la base de données");
+  } catch (error) {
+    console.error("❌ Erreur de synchronisation :", error);
+  }
+});

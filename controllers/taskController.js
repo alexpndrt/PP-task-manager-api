@@ -1,82 +1,87 @@
-// controllers/taskController.js
+import { Task } from "../models/taskModel.js";
 
-import {
-  getTasks,
-  getTaskById as findTaskById,
-  createTask as saveTask,
-  updateTask as saveUpdatedTask,
-  deleteTask as removeTask,
-} from "../models/taskModel.js";
-
-// ✅ Lire toutes les tâches
-export const getAllTasks = (req, res) => {
-  res.json(getTasks());
+// ✅ Lire toutes les tâches (GET /tasks)
+export const getAllTasks = async (req, res) => {
+  try {
+    const tasks = await Task.findAll();
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
 };
 
-// ✅ Lire une tâche par ID
-export const getTaskById = (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const task = findTaskById(taskId);
+// ✅ Lire une tâche par ID (GET /tasks/:id)
+export const getTaskById = async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.id);
+    const task = await Task.findByPk(taskId);
 
-  if (!task) {
-    return res.status(404).json({ message: "Tâche non trouvée" });
+    if (!task) {
+      return res.status(404).json({ message: "Tâche non trouvée" });
+    }
+
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
-
-  res.json(task);
 };
 
-// ✅ Créer une nouvelle tâche
-export const createTask = (req, res) => {
-  const { title, done } = req.body;
+// ✅ Créer une nouvelle tâche (POST /tasks)
+export const createTask = async (req, res) => {
+  try {
+    const { title, done } = req.body;
 
-  if (!title) {
-    return res.status(400).json({ message: "Le titre est obligatoire" });
+    if (!title) {
+      return res.status(400).json({ message: "Le titre est obligatoire" });
+    }
+
+    const newTask = await Task.create({
+      title,
+      done: done ?? false
+    });
+
+    res.status(201).json(newTask);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
-
-  const tasks = getTasks();
-  const newTask = {
-    id: tasks.length ? tasks[tasks.length - 1].id + 1 : 1,
-    title,
-    done: done ?? false,
-  };
-
-  saveTask(newTask);
-  res.status(201).json(newTask);
 };
 
-// ✅ Mettre à jour une tâche
-export const updateTask = (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const tasks = getTasks();
+// ✅ Mettre à jour une tâche (PUT /tasks/:id)
+export const updateTask = async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.id);
+    const { title, done } = req.body;
 
-  const index = tasks.findIndex((task) => task.id === taskId);
+    const task = await Task.findByPk(taskId);
 
-  if (index === -1) {
-    return res.status(404).json({ message: "Tâche non trouvée" });
+    if (!task) {
+      return res.status(404).json({ message: "Tâche non trouvée" });
+    }
+
+    task.title = title ?? task.title;
+    task.done = done ?? task.done;
+    await task.save();
+
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
-
-  const { title, done } = req.body;
-  const updatedTask = {
-    ...tasks[index],
-    title: title ?? tasks[index].title,
-    done: done ?? tasks[index].done,
-  };
-
-  saveUpdatedTask(index, updatedTask);
-  res.json(updatedTask);
 };
 
-// ✅ Supprimer une tâche
-export const deleteTask = (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const tasks = getTasks();
+// ✅ Supprimer une tâche (DELETE /tasks/:id)
+export const deleteTask = async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.id);
+    const task = await Task.findByPk(taskId);
 
-  const index = tasks.findIndex((task) => task.id === taskId);
+    if (!task) {
+      return res.status(404).json({ message: "Tâche non trouvée" });
+    }
 
-  if (index === -1) {
-    return res.status(404).json({ message: "Tâche non trouvée" });
+    await task.destroy();
+
+    res.json({ message: "Tâche supprimée", deletedTask: task });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
-
-  const deletedTask = removeTask(index);
-  res.json({ message: "Tâche supprimée", deletedTask });
 };
