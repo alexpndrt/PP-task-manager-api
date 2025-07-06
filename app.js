@@ -7,6 +7,8 @@ import cors from "cors";
 import taskRouter from "./routes/taskRouter.js";
 import { logger } from "./middlewares/logger.js";
 import { testConnection, sequelize } from "./models/index.js";
+import { User } from './models/userModel.js'; 
+import authRouter from './routes/authRouter.js';
 
 // ✅ Chargement des variables d'environnement
 dotenv.config();
@@ -25,6 +27,7 @@ app.use(logger);
 
 // ✅ Définition des routes principales avec préfixe
 app.use("/api", taskRouter);
+app.use('/api/auth', authRouter);
 
 // ✅ Route racine
 app.get("/", (req, res) => {
