@@ -2,7 +2,7 @@
 // On importe express (le framework) et dotenv (les variables d'environnement)
 import express from "express";
 import dotenv from "dotenv";
-import taskRoutes from './routes/taskRoutes.js';
+import taskRouter from "./routes/taskRouter.js";
 
 // On configure dotenv pour lire les variables du fichier .env
 dotenv.config();
@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 
 // Brancher les routes avec préfixe /api
-app.use('/api', taskRoutes);
+app.use("/api", taskRouter);
 
 // Création d'une route GET sur la racine (http://localhost:3001/)
 app.get("/", (req, res) => {
